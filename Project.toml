@@ -1,0 +1,21 @@
+[deps]
+BellPolytopes = "38bdb6f4-c11c-4b2a-9c62-3601ea4ec58a"
+Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MultiFloats = "bdf0d083-296b-4888-a5b6-7498122e68a5"
+Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[sources]
+BellPolytopes = {path = "../.."}
+
+[compat]
+BellPolytopes = "0.2.2"
+Combinatorics = "1"
+MultiFloats = "2, 3"
+Oscar = "1.8"
+julia = "1.10"
