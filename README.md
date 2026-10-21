@@ -26,11 +26,11 @@ The final bound is algebraic; the finite local-model reconstruction and its erro
 
 ## Reproducing the result
 
-Run the following commands from the BellPolytopes repository root:
+Run the following commands from the repository root:
 
 ```sh
-julia --startup-file=no --project=qubit_povm/s2306_121 -e 'using Pkg; Pkg.instantiate()'
-julia --startup-file=no --project=qubit_povm/s2306_121 qubit_povm/s2306_121/reproduce.jl
+julia --project -e 'using Pkg; Pkg.instantiate()'
+julia --project reproduce.jl
 ```
 
 The script verifies both shrinking factors, reconstructs the saved local model, and writes `result.toml`.
@@ -42,20 +42,17 @@ No optimization is required to reproduce the certificate.
 The option `--skip-shrinking` repeats only the finite-model reconstruction after the coverage proof has been checked separately.
 The option `--integer` selects the independent integer reconstruction backend instead of the default exact integer-valued BLAS backend.
 The report records whether shrinking-factor verification was performed in that run.
-All proof-data paths are relative to the source files, independently of the working directory.
 
 Oscar provides rigorous real-ball and exact algebraic arithmetic for Bob's coverage proof and is loaded only when that proof is requested.
 Measurement construction and active-set reconstruction do not require loading Oscar.
 The saved `.dat` file uses Julia `Serialization` with MultiFloats weights; the verified environment uses Julia 1.13.2 and MultiFloats 3.3.2.
-Retaining the environment versions is recommended when archiving this serialized model.
-The project resolves BellPolytopes from the repository root through a relative path.
 
 ## Numerical and exact APIs
 
 The constructors evaluate the algebraic measurement data directly in the requested floating-point type:
 
 ```julia
-include("qubit_povm/s2306_121/Measurements.jl")
+include("Measurements.jl")
 using .SingletPOVMs, BellPolytopes, MultiFloats
 
 T = Float64x2
@@ -63,11 +60,6 @@ A = measurement_set(; T)
 B = template_set(; T)
 s = build_scenario(A, B)  # p, o, q, deflate, inflate
 ```
-
-`Float64`, `Float64x2`, `Float64x3`, and `BigFloat` are covered by the regression tests.
-Set the working precision before constructing `BigFloat` measurements.
-Floating-point coordinates are evaluated from exact formulas rather than obtained by promoting rounded Float64 data.
-The two parties may use different numeric types; the scenario construction promotes them to a common type.
 
 For a new Frank–Wolfe calculation:
 
@@ -78,7 +70,7 @@ radius = SingletPOVMs.downward_convert(T, ball.radius)
 
 result = bell_frank_wolfe(s.p; o=s.o, prob=true, sym=true,
     deflate=s.deflate, inflate=s.inflate, radius,
-    v0=T(69)/100, epsilon=parse(T, "1e-14"), mode_last=-1)
+    v0=T(69)/100, epsilon=T(1e-10), mode_last=-1)
 
 cert = active_set_certificate(result, data; v0=69//100, q=s.q)
 bound = exact_alice_visibility(cert)
@@ -88,9 +80,7 @@ bound.squared     # Exact number-field element; the visibility is its nonnegativ
 ```
 
 `active_set_certificate` accepts a solver result, an active set, or an `ActiveSetStorageMulti` with weights admitting exact conversion to `Rational{BigInt}`.
-MultiFloats limbs are converted exactly, and stored BigFloat precision is preserved.
 Use `69//100` to specify exactly 0.69; a floating-point argument certifies its represented value.
-The input storage is not modified.
 
 `cert.visibility_lower` retains a rational-only fallback using `922602194543/10^12` for Alice.
 The final analytical result uses `exact_alice_visibility(cert)` instead.
@@ -110,15 +100,10 @@ Call `certify_shrinking()` to verify the measurement-coverage assumptions indepe
 | [outer_cover.jl](outer_cover.jl) | Independent verification of Bob's outer approximation and simulation witnesses. |
 | [certification.jl](certification.jl) | Local radii, forbidden-output repair, and exact active-set post-processing. |
 | [reproduce.jl](reproduce.jl) | Complete verification of the supplied finite model and all-POVM bound. |
-| [runtests.jl](runtests.jl) | Arithmetic, numeric-type, ordering, symmetry, and certificate regression tests. |
 | [outer_cover.toml](outer_cover.toml) | Algebraic construction recipes, proposed geometry and group actions, and seed metadata. |
 | [centers_2_targets.tsv](centers_2_targets.tsv) | The 42,547 canonical outer-target support representatives. |
 | [centers_2_witnesses.tsv](centers_2_witnesses.tsv) | Candidate simulation bases and mixtures for those targets. |
 | [s2306_121_v6900.dat](s2306_121_v6900.dat) | The 7,421 saved deterministic strategies and their numerical mixture weights. |
-
-The TOML geometry, both TSV files, and the saved active set are required proof inputs.
-Their geometric and algebraic claims are checked by the verifier; small numerical LP residuals are not accepted as certificates.
-The verification uses no Python code, LP solver, or data outside this directory.
 
 ## Measurement approximation
 
@@ -397,12 +382,3 @@ The solver's cached iterate and numerical objective are not proof inputs.
 If $x$ is the reconstructed local point and $p_{v_0}$ is the target, then $y=o+\nu(p_{v_0}-x)/(1-\nu)$ lies in the certified local ball whenever $\epsilon>0$.
 Thus $p_{\nu v_0}=\nu x+(1-\nu)y$ is local; if $\epsilon=0$, the target is already local.
 Applying the measurement simulations on both sides gives the all-POVM visibility $\eta_A\eta_B\nu v_0$ with Alice's exact algebraic factor.
-
-## Tests
-
-```sh
-julia --startup-file=no --check-bounds=yes --project=qubit_povm/s2306_121 qubit_povm/s2306_121/runtests.jl
-```
-
-The suite checks exact arithmetic, arbitrary-type construction, measurement and orbit ordering, probability normalization, complete coverage, rejection of malformed witnesses, and the saved local-model certificate.
-It also compares the BLAS and integer reconstruction backends on a smaller instance and verifies the exact algebraic visibility representation.
