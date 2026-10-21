@@ -1,5 +1,4 @@
-# From the repository root:
-# julia --project=qubit_povm/s2306_121 qubit_povm/s2306_121/reproduce.jl
+# From the repository root: julia --project reproduce.jl
 # --skip-shrinking skips ONLY a previously verified coverage certificate.
 # --integer selects the independent (slower) integer reconstruction backend.
 include("Measurements.jl")
