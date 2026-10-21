@@ -103,3 +103,12 @@ Call `certify_shrinking()` to verify the measurement-coverage assumptions indepe
 | [centers_2_targets.tsv](centers_2_targets.tsv) | The 42,547 canonical outer-target support representatives. |
 | [centers_2_witnesses.tsv](centers_2_witnesses.tsv) | Candidate simulation bases and mixtures for those targets. |
 | [s2306_121_v6900.dat](s2306_121_v6900.dat) | The 7,421 saved deterministic strategies and their numerical mixture weights. |
+
+## AI disclosure and computational details
+
+GPT 6 Astra was used to generate the code in this repository.
+More approximations of qubit POVMs have been proposed and can be requested by email; they may be put in a separate repository in the near future.
+The method implemented in `BellPolytopes.jl` produced the file `s2306_121_v6900.dat` within half a day of computation.
+Most of the time was spent to reach a primal of `1e-8` with standard precision (`Float64`), then the active set was reused with extended precision (`Float64x2`) to reach a primal of `1e-10`.
+About 500GB of RAM were necessary to fit the active set in extended precision; a proxy for this number is the size of the 7421 unsymmetrized atoms, each containing $2306\times121\times4\times4$ elements of type `Float64x2` of size 16B.
+Further work in `FrankWolfe.jl` could avoid storing all these unsymmetrized atoms.
